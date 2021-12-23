@@ -13,3 +13,7 @@ npx hardhat node
 node scripts/sample-script.js
 npx hardhat help
 ```
+
+# Website Link: https://waveportal-starter-project.hborska.repl.co/
+
+For speed, the front end was created on Repl.it. On the website, you can "wave" to me, which includes incrementing the amount of waves by 1 and sending a custom message along with the wave. All of the waves of previous users can be seen on the frontend.
