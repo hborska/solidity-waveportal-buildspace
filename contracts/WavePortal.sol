@@ -9,7 +9,7 @@ contract WavePortal {
     uint256 private seed;
     bool winsPrize;
 
-    event NewWave(address indexed from, uint256 timestamp, string message, bool isWinner);
+    event NewWave(address indexed from, uint256 timestamp, string message, bool winsPrize);
 
     struct Wave {
         address waver;
@@ -18,42 +18,50 @@ contract WavePortal {
         bool isWinner;
     }
 
+    //Array of our waves
     Wave[] waves;
+    //Mapping address of wallet to time to prevent spamming
+    mapping(address => uint256) public lastWavedAt;
 
     constructor() payable {
         console.log("We have been constructed!");
-        
         //Initial seed (for randomness)
         seed = (block.timestamp + block.difficulty) % 100;
     }
 
-    //Generating random # based on the block difficulty and timestamp 
-    //NOT a good way to generate randomness since hackers could reverse engineer! 
-    //Seed makes it harder but still possible to hack, but this is fine for our tiny app
     function wave(string memory _message) public {
+        //Preventing spamming (15 minute cooldown), require last waved to be > 15 mins
+        require(
+            lastWavedAt[msg.sender] + 15 minutes < block.timestamp,
+            "Wait 15m"
+        );
+
+        //Update timestamp
+        lastWavedAt[msg.sender] = block.timestamp;
+
         totalWaves += 1;
         console.log("%s has waved!", msg.sender);
 
-        //New seed # for next user that waves
-        seed = (block.difficulty + block.timestamp + seed) % 100;
-        
-        console.log("Random # generated: %d", seed);
 
-        //50/50 chance the user wins the prize
+        seed = (block.difficulty + block.timestamp + seed) % 100;
+
+        //The user wins the prize money
         if (seed <= 50) {
-            console.log("%s won!", msg.sender);
             winsPrize = true;
             waves.push(Wave(msg.sender, _message, block.timestamp, true));
 
-            //Sending the prize ether
+            console.log("%s won!", msg.sender);
+
             uint256 prizeAmount = 0.0001 ether;
             require(
                 prizeAmount <= address(this).balance,
-                "Trying to withdraw more money than the contract has."
+                "Trying to withdraw more money than they contract has."
             );
             (bool success, ) = (msg.sender).call{value: prizeAmount}("");
             require(success, "Failed to withdraw money from contract.");
-        } else {
+        }
+        //User does not win the prize money 
+        else {
             winsPrize = false;
             waves.push(Wave(msg.sender, _message, block.timestamp, false));
         }
