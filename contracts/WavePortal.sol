@@ -30,11 +30,9 @@ contract WavePortal {
     }
 
     function wave(string memory _message) public {
-        //Preventing spamming (15 minute cooldown), require last waved to be > 15 mins
-        require(
-            lastWavedAt[msg.sender] + 15 minutes < block.timestamp,
-            "Wait 15m"
-        );
+        //Preventing spamming (30 second cooldown), require last waved to be > 30 seconds (prevent spam)
+        require(lastWavedAt[msg.sender] + 30 seconds < block.timestamp, "Must wait 30 seconds before waving again.");
+
 
         //Update timestamp
         lastWavedAt[msg.sender] = block.timestamp;
